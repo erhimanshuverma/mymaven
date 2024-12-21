@@ -1,0 +1,43 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('download')
+        {
+            steps
+            {
+                git 'https://github.com/erhimanshuverma/maven.git'
+            }
+        }
+        stage('build')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        stage('deploy')
+        {
+            steps
+            {
+                deploy adapters: [tomcat9(credentialsId: '0315ab28-0393-4df8-b34e-27ba06586852', path: '', url: 'http://172.31.8.27:8080')], contextPath: 'testrun', war: '**/*.war'
+            }
+        }
+        stage('testing')
+        {
+            steps
+            {
+                git 'https://github.com/erhimanshuverma/FunctionalTesting.git'
+                sh 'java -jar /var/lib/jenkins/workspace/Development/testing.jar'
+            }
+        }
+        stage('delivery')
+        {
+            steps
+            {
+                deploy adapters: [tomcat9(credentialsId: '0315ab28-0393-4df8-b34e-27ba06586852', path: '', url: 'http://172.31.8.78:8080')], contextPath: 'prodrun', war: '**/*.war'
+            }
+        }
+    }
+}
